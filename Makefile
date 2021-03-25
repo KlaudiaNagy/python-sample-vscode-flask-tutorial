@@ -1,6 +1,6 @@
 test:
-	python3 -m pytest
+	python -m pytest
 lint:
-	python3 -m pylint
+	python -m pylint
 doc:
 	@echo "create documentation"
