@@ -29,7 +29,7 @@ stages:
 - stage: Prepare
   displayName: Prepare
   jobs:
-  - job: CheckPythonVersion
+  - job: Build
     pool:
       vmImage: $(vmImageName)
     steps:
@@ -38,8 +38,6 @@ stages:
         versionSpec: '$(pythonVersion)'
       displayName: 'Use Python $(pythonVersion)'
 
-  - job: InstallRequirementsAndBuild
-    steps:
     - script: |
         python -m venv antenv
         source antenv/bin/activate
