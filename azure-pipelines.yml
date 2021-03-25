@@ -60,7 +60,7 @@ stages:
       displayName: 'Upload package'
       artifact: drop
 
-  - job: Build code documentation
+  - job: Build_code_documentation
     displayName: 'Build code documentation'
     steps:
       - script: |
