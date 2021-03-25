@@ -38,9 +38,6 @@ stages:
         versionSpec: '$(pythonVersion)'
       displayName: 'Use Python $(pythonVersion)'
 
-  - job: Install_requirements
-    displayName: 'Install requirements'
-    steps:
     - script: |
         python -m venv antenv
         source antenv/bin/activate
@@ -50,9 +47,6 @@ stages:
       workingDirectory: $(projectRoot)
       displayName: "Install requirements"
 
-  - job: Build
-    displayName: 'Build'
-    steps:
     - task: ArchiveFiles@2
       displayName: 'Archive files'
       inputs:
