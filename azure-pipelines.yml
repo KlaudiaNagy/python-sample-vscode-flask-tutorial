@@ -64,121 +64,123 @@ stages:
     displayName: 'Build code documentation'
     steps:
       - script: |
+          sudo apt-get install python3-venv
           python3 -m venv antenv
           source antenv/bin/activate
+          python3 -m pip install --upgrade pip
           make doc
         workingDirectory: $(projectRoot)
         displayName: 'Build code documentation'
 
-- stage: Check
-  dependsOn: Prepare
-  jobs:   
-    - job: Lint_check
-      displayName: 'Lint checker'
-      steps:
-        - script: |
-            python3 -m venv antenv
-            source antenv/bin/activate
-            make doc
-          # python3 -m venv antenv
-          # source antenv/bin/activate
-          # python3 -m pip install --upgrade pip
-          workingDirectory: $(projectRoot)
-          displayName: 'Run lint tests'
+# - stage: Check
+#   dependsOn: Prepare
+#   jobs:   
+#     - job: Lint_check
+#       displayName: 'Lint checker'
+#       steps:
+#         - script: |
+#             python3 -m venv antenv
+#             source antenv/bin/activate
+#             make doc
+#           # python3 -m venv antenv
+#           # source antenv/bin/activate
+#           # python3 -m pip install --upgrade pip
+#           workingDirectory: $(projectRoot)
+#           displayName: 'Run lint tests'
     
-    - job: Copyright_check
-      displayName: 'Copyright check'
-      steps:
-      - task: PythonScript@0
-        inputs:
-          scriptSource: 'inline'
-          script: |
-            print('Copyright check')
+#     - job: Copyright_check
+#       displayName: 'Copyright check'
+#       steps:
+#       - task: PythonScript@0
+#         inputs:
+#           scriptSource: 'inline'
+#           script: |
+#             print('Copyright check')
     
-    - job: License_check
-      displayName: 'License check'
-      steps:
-      - task: PythonScript@0
-        inputs:
-          scriptSource: 'inline'
-          script: |
-            print('License check')
+#     - job: License_check
+#       displayName: 'License check'
+#       steps:
+#       - task: PythonScript@0
+#         inputs:
+#           scriptSource: 'inline'
+#           script: |
+#             print('License check')
 
-- stage: Test
-  dependsOn: Check
-  jobs:
-    - job: Pytest
-      displayName: 'Pytest'
-      steps:
-        - script: |
-            python3 -m venv antenv
-            source antenv/bin/activate
-            python3 -m pip install --upgrade pip
-            pip install pytest
-            make pytest
-          workingDirectory: $(projectRoot)
-          displayName: 'Run pytest'
+# - stage: Test
+#   dependsOn: Check
+#   jobs:
+#     - job: Pytest
+#       displayName: 'Pytest'
+#       steps:
+#         - script: |
+#             python3 -m venv antenv
+#             source antenv/bin/activate
+#             python3 -m pip install --upgrade pip
+#             pip install pytest
+#             make pytest
+#           workingDirectory: $(projectRoot)
+#           displayName: 'Run pytest'
 
-    - job: Unit_tests
-      displayName: 'Unit tests'
-      steps:
-        - task: PythonScript@0
-          inputs:
-            scriptSource: 'inline'
-            script: |
-              print('Run unit tests')
-          displayName: 'Run unit tests'
+#     - job: Unit_tests
+#       displayName: 'Unit tests'
+#       steps:
+#         - task: PythonScript@0
+#           inputs:
+#             scriptSource: 'inline'
+#             script: |
+#               print('Run unit tests')
+#           displayName: 'Run unit tests'
 
-    - job: Feature_tests
-      displayName: 'Feature tests'
-      steps:
-        - task: PythonScript@0
-          inputs:
-            scriptSource: 'inline'
-            script: |
-              print('Run feature tests')
-          displayName: 'Run feature tests'
+#     - job: Feature_tests
+#       displayName: 'Feature tests'
+#       steps:
+#         - task: PythonScript@0
+#           inputs:
+#             scriptSource: 'inline'
+#             script: |
+#               print('Run feature tests')
+#           displayName: 'Run feature tests'
 
-- stage: Deploy
-  displayName: 'Deploy Web App'
-  dependsOn: Test
-  condition: succeeded()
-  jobs:
-  - deployment: DeploymentJob
-    pool:
-      vmImage: $(vmImageName)
-    environment: $(environmentName)
-    strategy:
-      runOnce:
-        deploy:
-          steps:
+# - stage: Deploy
+#   displayName: 'Deploy Web App'
+#   dependsOn: Test
+#   condition: succeeded()
+#   jobs:
+#   - deployment: DeploymentJob
+#     pool:
+#       vmImage: $(vmImageName)
+#     environment: $(environmentName)
+#     strategy:
+#       runOnce:
+#         deploy:
+#           steps:
 
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: '$(pythonVersion)'
-            displayName: 'Use Python version'
+#           - task: UsePythonVersion@0
+#             inputs:
+#               versionSpec: '$(pythonVersion)'
+#             displayName: 'Use Python version'
 
-          - task: AzureWebApp@1
-            displayName: 'Deploy Azure Web App : newhelloworld'
-            inputs:
-              azureSubscription: $(azureServiceConnectionId)
-              appName: $(webAppName)
-              package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
+#           - task: AzureWebApp@1
+#             displayName: 'Deploy Azure Web App : newhelloworld'
+#             inputs:
+#               azureSubscription: $(azureServiceConnectionId)
+#               appName: $(webAppName)
+#               package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
 
-- stage: Cleanup
-  dependsOn:
-    - Prepare
-    - Check
-    - Test
-    - Deploy
-  condition: always()
-  jobs:
-    - job: Cleanup_environment
-      displayName: 'Cleaning up environment'
-      steps:
-        - task: PythonScript@0
-          inputs:
-            scriptSource: 'inline'
-            script: |
-              print('Cleanup')
-          displayName: 'Cleanup'
+# - stage: Cleanup
+#   dependsOn:
+#     - Prepare
+#     - Check
+#     - Test
+#     - Deploy
+#   condition: always()
+#   jobs:
+#     - job: Cleanup_environment
+#       displayName: 'Cleaning up environment'
+#       steps:
+#         - task: PythonScript@0
+#           inputs:
+#             scriptSource: 'inline'
+#             script: |
+#               print('Cleanup')
+#           displayName: 'Cleanup'
