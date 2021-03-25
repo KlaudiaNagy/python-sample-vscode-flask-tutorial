@@ -64,6 +64,8 @@ stages:
     displayName: 'Build code documentation'
     steps:
       - script: |
+          python3 -m venv antenv
+          source antenv/bin/activate
           sudo apt-get install python3-venv
           python3 -m venv antenv
           source antenv/bin/activate
