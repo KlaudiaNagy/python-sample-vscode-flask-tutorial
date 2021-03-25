@@ -26,10 +26,10 @@ variables:
   pythonVersion: '3.7'
 
 stages:
-- stage: Build
-  displayName: Build stage
+- stage: Prepare
+  displayName: Prepare
   jobs:
-  - job: BuildJob
+  - job: CheckPythonVersion
     pool:
       vmImage: $(vmImageName)
     steps:
@@ -38,6 +38,9 @@ stages:
         versionSpec: '$(pythonVersion)'
       displayName: 'Use Python $(pythonVersion)'
 
+  - job: Install_requirements
+    displayName: 'Install requirements'
+    steps:
     - script: |
         python -m venv antenv
         source antenv/bin/activate
@@ -47,6 +50,9 @@ stages:
       workingDirectory: $(projectRoot)
       displayName: "Install requirements"
 
+  - job: Build
+    displayName: 'Build'
+    steps:
     - task: ArchiveFiles@2
       displayName: 'Archive files'
       inputs:
@@ -60,9 +66,75 @@ stages:
       displayName: 'Upload package'
       artifact: drop
 
+- stage: Check
+  dependsOn: Prepare
+  jobs:   
+    - job: Lint_check
+      displayName: 'Lint checker'
+      steps:
+        - script: |
+            python -m venv antenv
+            source antenv/bin/activate
+            make
+          # python -m pip install --upgrade pip
+          # make install
+          # make lint
+          workingDirectory: $(projectRoot)
+          displayName: 'Run lint tests'
+    
+    - job: Copyright_check
+      displayName: 'Copyright check'
+      steps:
+      - task: PythonScript@0
+        inputs:
+          scriptSource: 'inline'
+          script: |
+            print('Copyright check')
+    
+    - job: License_check
+      displayName: 'License check'
+      steps:
+      - task: PythonScript@0
+        inputs:
+          scriptSource: 'inline'
+          script: |
+            print('License check')
+
+- stage: Test
+  dependsOn: Check
+  jobs:
+    - job: Pytest
+      displayName: 'Pytest'
+      steps:
+        - script: |
+            pip3 install pytest pytest-azurepipelines
+          # pytest
+          workingDirectory: $(projectRoot)
+          displayName: 'Run pytest'
+
+    - job: Unit_tests
+      displayName: 'Unit tests'
+      steps:
+        - task: PythonScript@0
+          inputs:
+            scriptSource: 'inline'
+            script: |
+              print('Run unit tests')
+          displayName: 'Run unit tests'
+
+    - job: Feature_tests
+      displayName: 'Feature tests'
+      steps:
+        - task: PythonScript@0
+          inputs:
+            scriptSource: 'inline'
+            script: |
+              print('Run feature tests')
+          displayName: 'Run feature tests'
+
 - stage: Deploy
   displayName: 'Deploy Web App'
-  dependsOn: Build
+  dependsOn: Test
   condition: succeeded()
   jobs:
   - deployment: DeploymentJob
@@ -85,3 +157,21 @@ stages:
               azureSubscription: $(azureServiceConnectionId)
               appName: $(webAppName)
               package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
+
+- stage: Cleanup
+  dependsOn:
+    - Prepare
+    - Check
+    - Test
+    - Deploy
+  condition: always()
+  jobs:
+    - job: Cleanup_environment
+      displayName: 'Cleaning up environment'
+      steps:
+        - task: PythonScript@0
+          inputs:
+            scriptSource: 'inline'
+            script: |
+              print('Cleanup')
+          displayName: 'Cleanup'
