@@ -77,11 +77,12 @@ stages:
       displayName: 'Lint checker'
       steps:
         - script: |
-            python3 -m venv antenv
-            source antenv/bin/activate
             python3 -m pip install --upgrade pip
             pip install pylint
             make lint
+          # python3 -m venv antenv
+          # source antenv/bin/activate
+          # python3 -m pip install --upgrade pip
           workingDirectory: $(projectRoot)
           displayName: 'Run lint tests'
     
