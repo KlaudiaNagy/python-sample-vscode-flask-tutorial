@@ -77,9 +77,9 @@ stages:
       displayName: 'Lint checker'
       steps:
         - script: |
-            sudo python3 -m pip install --upgrade pip
-            pip install pylint
-            make lint
+            python3 -m venv antenv
+            source antenv/bin/activate
+            make doc
           # python3 -m venv antenv
           # source antenv/bin/activate
           # python3 -m pip install --upgrade pip
